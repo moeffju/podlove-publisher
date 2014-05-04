@@ -42,6 +42,9 @@ class Social extends \Podlove\Modules\Base {
 		add_filter( 'podlove_adn_tags_contributors_contributors', array($this, 'adn_tags'), 10, 4);
 		add_action( 'init', array($this, 'adn_contributor_filter') );
 
+		add_action( 'publish_podcast', array( $this, 'notify_contributors' ) );
+		add_action( 'podlove_notify_contributors', array( $this, 'notify_contributors_via_email' ) );
+
 		add_filter('podlove_twig_file_loader', function($file_loader) {
 			$file_loader->addPath(implode(DIRECTORY_SEPARATOR, array(\Podlove\PLUGIN_DIR, 'lib', 'modules', 'social', 'templates')), 'social');
 			return $file_loader;
@@ -57,6 +60,37 @@ class Social extends \Podlove\Modules\Base {
 
 		add_shortcode( 'podlove-podcast-social-media-list', array( $this, 'podlove_podcast_social_media_list') );
 		add_shortcode( 'podlove-podcast-donations-list', array( $this, 'podlove_podcast_donations_list') );
+	}
+
+
+	public function notify_contributors_via_email( $post_id ) {
+		$episode = \Podlove\Model\Episode::find_or_create_by_post_id( $post_id );
+		$contributions = \Podlove\Modules\Contributors\Model\EpisodeContribution::find_all_by_episode_id( $episode->id );
+
+		foreach ( $contributions as $contribution ) {
+			$podcast = \Podlove\Model\Podcast::get_instance();
+			$contributor = \Podlove\Modules\Contributors\Model\Contributor::find_one_by_id( $contribution->contributor_id );
+			$notification_options = get_option( '_podlove_contributor_notifications' );
+
+			add_filter( 'wp_mail_from_name', function() use ( $podcast ) {
+				return $podcast->title;
+			});
+
+			if ( !is_null( $contributor->privateemail ) )
+				wp_mail(
+						$contributor->privateemail,
+						$notification_options['email_template_title'],
+						$notification_options['email_template']
+					);
+		}
+	}
+
+	public function notify_contributors( $post_id ) {
+		if ( get_post_meta( $post_id, '_podlove_contributors_were_notified', true ) === '1' )
+			return;
+
+		do_action( 'podlove_notify_contributors', $post_id );
+		update_post_meta( $post_id, '_podlove_contributors_were_notified', true );
 	}
 
 	public function was_activated( $module_name ) {

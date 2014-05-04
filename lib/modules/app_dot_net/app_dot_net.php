@@ -27,6 +27,8 @@ class App_Dot_Net extends \Podlove\Modules\Base {
 				add_action('publish_podcast', array( $this, 'post_to_adn_handler' ));
 				add_action('publish_future_podcast', array( $this, 'post_to_adn_handler' ));
 				add_action('delayed_adn_post', array( $this, 'post_to_adn' ), 10, 2);
+
+				add_action('podlove_notify_contributors', array( $this, 'notify_contributors') );
 			}
 			
 			if ( isset( $_GET["page"] ) && $_GET["page"] == "podlove_settings_modules_handle") {
@@ -543,6 +545,31 @@ class App_Dot_Net extends \Podlove\Modules\Base {
 			delete_transient('podlove_adn_rooms');
 			delete_transient('podlove_adn_broadcast_channels');
 			header('Location: '.get_site_url().'/wp-admin/admin.php?page=podlove_settings_modules_handle');    
+    	}
+    }
+
+    public function notify_contributors( $post_id ) {
+    	$episode = \Podlove\Model\Episode::find_or_create_by_post_id( $post_id );
+    	$contributions = \Podlove\Modules\Contributors\Model\EpisodeContribution::find_all_by_episode_id( $episode->id );
+
+    	foreach ( $contributions as $contribution ) {
+    		$podcast = \Podlove\Model\Podcast::get_instance();
+    		$contributor = \Podlove\Modules\Contributors\Model\Contributor::find_one_by_id( $contribution->contributor_id );
+    		$notification_options = get_option( '_podlove_contributor_notifications' );
+    		$adn_service = \Podlove\Modules\Social\Model\Service::find_one_by_property( 'title', 'App.net' );
+    		$adn_account = \Podlove\Modules\Social\Model\ContributorService::find_one_by_where( '`contributor_id` = \'' . $contributor->id . '\' AND `service_id` = \'' . $adn_service->id .'\'' );
+
+    		$data = array(
+    				'text' => $notification_options['adn_pm'],
+    				'destinations' => array( '@' . $adn_account->value )
+    			);
+
+    		$url = sprintf(
+    			'https://alpha-api.app.net/channels/pm/messages?access_token=%s',
+    			$this->get_module_option('adn_auth_key')
+    		);
+
+    		$this->send_data_to_adn($url, $data);
     	}
     }
 
