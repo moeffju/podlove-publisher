@@ -16,25 +16,19 @@ class ContributorSettingsNotificationsTab extends Tab {
 	}
 
 	public function process_form() {
-		if (!isset($_POST['podlove_podcast']) || !$this->is_active())
+		if (!isset($_POST['podlove_contributor_notifications']) )
 			return;
 
-		$formKeys = array('donations');
-
-		$settings = get_option('podlove_podcast');
-		foreach ($formKeys as $key) {
-			$settings[$key] = $_POST['podlove_podcast'][$key];
-		}
-		update_option('podlove_podcast', $settings);
-		
-		header('Location: ' . $this->get_url());
+		update_option('_podlove_contributor_notifications', $_POST['podlove_contributor_notifications']);
+		header('Location: ' . 'admin.php?page=' . $_REQUEST['page'] . '&podlove_tab=notifications');
 	}
 
 	public function register_page() {
+		$options = get_option( '_podlove_contributor_notifications' );
 		?>
 		<div class="wrap">
 			Contributors for new Episodes will receive notifications via the selected services, if a new episode is published.
-			<form>
+			<form method="post" action="admin.php?page=podlove_contributor_settings&action=save">
 				<ul>
 					<li>
 						<div class="_podlove_contributor_notifications_triangles">
@@ -42,7 +36,8 @@ class ContributorSettingsNotificationsTab extends Tab {
 							<span class="_podlove_contributor_notifications_triangle_expanded">&#9660;</span>
 						</div>
 							<input type="checkbox" id="_podlove_contributor_notifications_adn_pm"
-								   name="_podlove_contributor_notifications_adn_pm" />
+								   name="podlove_contributor_notifications[adn_pm]" 
+								   <?php echo ( isset( $options['adn_pm'] ) && $options['adn_pm'] == 'on' ? 'checked' : '' ) ?> />
 							<label for="_podlove_contributor_notifications_adn_pm"
 								   class="_podlove_contributor_notifications_label">
 								App.net Private Message
@@ -55,7 +50,7 @@ class ContributorSettingsNotificationsTab extends Tab {
 										</th>
 										<td>
 											<textarea class="large-text code autogrow"
-										  name="_podlove_contributor_notifications_adn_pm_template"></textarea>
+										  name="podlove_contributor_notifications[adn_pm_template]"><?php echo ( isset( $options['adn_pm_template'] ) ? $options['adn_pm_template'] : '' ); ?></textarea>
 										  <span class="description">Fuuu</span>
 										</td>
 									</tr>
@@ -68,7 +63,8 @@ class ContributorSettingsNotificationsTab extends Tab {
 							<span class="_podlove_contributor_notifications_triangle_expanded">&#9660;</span>
 						</div>
 							<input type="checkbox" id="_podlove_contributor_notifications_email"
-								   name="_podlove_contributor_notifications_email" />
+								   name="podlove_contributor_notifications[email]" 
+								   <?php echo ( isset( $options['email'] ) && $options['email'] == 'on' ? 'checked' : '' ) ?> />
 							<label for="_podlove_contributor_notifications_email"
 								   class="_podlove_contributor_notifications_label">
 								E-Mail
@@ -80,9 +76,9 @@ class ContributorSettingsNotificationsTab extends Tab {
 											<label for="">Title</label>
 										</th>
 										<td>
-											<input type="text" name="_podlove_contributor_notifications_email_title" 
-											       id="_podlove_contributor_notifications_email_title" 
-											       class="regular-text" />
+											<input type="text" name="podlove_contributor_notifications[email_template_title]" 
+											       id="_podlove_contributor_notifications_email_title"
+											       class="regular-text" value="<?php echo ( isset( $options['email_template_title'] ) ? $options['email_template_title'] : '' ); ?>" />
 										</td>
 									</tr>
 									<tr>
@@ -91,7 +87,7 @@ class ContributorSettingsNotificationsTab extends Tab {
 										</th>
 										<td>
 											<textarea class="large-text code autogrow"
-										  name="_podlove_contributor_notifications_email_template"></textarea>
+										  name="podlove_contributor_notifications[email_template]"><?php echo ( isset( $options['email_template'] ) ? $options['email_template'] : '' ); ?></textarea>
 										  <span class="description">Fuuu</span>
 										</td>
 									</tr>
