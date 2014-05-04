@@ -24,6 +24,7 @@ class ContributorSettings {
 		$tabs->addTab( new \Podlove\Modules\Contributors\Settings\Tab\Defaults( __( 'Defaults', 'podlove' ), true ) );
 		$tabs->addTab( new \Podlove\Modules\Contributors\Settings\Tab\Groups( __( 'Groups', 'podlove' ) ) );
 		$tabs->addTab( new \Podlove\Modules\Contributors\Settings\Tab\Roles( __( 'Roles', 'podlove' ) ) );
+		$this->tabs = apply_filters( 'podlove_contributor_settings_tabs', $tabs );
 		$this->tabs = $tabs;
 		$this->tabs->initCurrentTab();
 

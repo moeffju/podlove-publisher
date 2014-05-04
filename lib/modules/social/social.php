@@ -18,6 +18,7 @@ class Social extends \Podlove\Modules\Base {
 		add_action( 'podlove_module_was_activated_social', array( $this, 'was_activated' ) );
 		add_action( 'podlove_podcast_settings_tabs', array( $this, 'podcast_settings_social_tab' ) );
 		add_action( 'podlove_podcast_settings_tabs', array( $this, 'podcast_settings_donation_tab' ) );
+		add_action( 'podlove_contributor_settings_tabs', array( $this, 'contributor_settings_notifications_tab' ) );
 
 		add_action( 'update_option_podlove_podcast', array( $this, 'save_social_setting' ), 10, 2 );
 		add_action( 'update_option_podlove_podcast', array( $this, 'save_donation_setting' ), 10, 2 );
@@ -564,6 +565,12 @@ class Social extends \Podlove\Modules\Base {
 		return $tabs;
 	}
 
+	public function contributor_settings_notifications_tab($tabs)
+	{
+		$tabs->addTab( new Settings\ContributorSettingsNotificationsTab( __( 'Notifications', 'podlove' ) ) );
+		return $tabs;
+	}
+
 	public function add_new_contributor_column($columns)
 	{
 			$keys = array_keys($columns);
@@ -838,6 +845,13 @@ class Social extends \Podlove\Modules\Base {
 			\Podlove\get_plugin_header( 'Version' )
 		);
 		wp_enqueue_style('podlove_social_admin_style');
+		wp_register_script(
+			'podlove_social_admin_script',
+			$this->get_module_url() . '/js/admin.js',
+			false,
+			\Podlove\get_plugin_header( 'Version' )
+		);
+		wp_enqueue_script('podlove_social_admin_script');
 	}
 
 	public function delete_contributor_services() {

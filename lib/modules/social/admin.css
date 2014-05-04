@@ -11,3 +11,27 @@ ul.podlove-contributor-social-list, ul.podlove-contributor-social-list li {
 	margin: 0px;
 	padding: 0px;
 }
+
+div._podlove_contributor_notifications_template {
+	margin: 0 0 1em 23px;
+}
+
+div._podlove_contributor_notifications_triangles {
+	width: 20px;
+	display: inline-block;
+}
+
+span._podlove_contributor_notifications_triangle,
+span._podlove_contributor_notifications_triangle_expanded {
+	cursor: pointer;
+}
+
+div._podlove_contributor_notifications_template,
+span._podlove_contributor_notifications_triangle_expanded {
+	display: none;
+}	
+
+label._podlove_contributor_notifications_label {
+	display: inline-block;
+	padding-bottom: 3px;
+}
