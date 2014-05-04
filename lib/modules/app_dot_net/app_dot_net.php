@@ -560,7 +560,7 @@ class App_Dot_Net extends \Podlove\Modules\Base {
     		$adn_account = \Podlove\Modules\Social\Model\ContributorService::find_one_by_where( '`contributor_id` = \'' . $contributor->id . '\' AND `service_id` = \'' . $adn_service->id .'\'' );
 
     		$data = array(
-    				'text' => $notification_options['adn_pm'],
+    				'text' => $notification_options['adn_pm_template'],
     				'destinations' => array( '@' . $adn_account->value )
     			);
 
@@ -568,6 +568,8 @@ class App_Dot_Net extends \Podlove\Modules\Base {
     			'https://alpha-api.app.net/channels/pm/messages?access_token=%s',
     			$this->get_module_option('adn_auth_key')
     		);
+
+    		$data['annotations'][] = $this->get_episode_cover( $post_id );
 
     		$this->send_data_to_adn($url, $data);
     	}
