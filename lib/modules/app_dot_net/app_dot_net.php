@@ -426,11 +426,7 @@ class App_Dot_Net extends \Podlove\Modules\Base {
 		update_post_meta( $post_id, '_podlove_episode_was_published', true );
     }
 
-    public function replace_tags( $post_id ) {
-    	$selected_role = $this->get_module_option('adn_contributor_filter_role');
-    	$selected_group = $this->get_module_option('adn_contributor_filter_group');
-
-    	$text = $this->get_module_option('adn_poster_announcement_text');
+    public function replace_tags_with_metadata( $text, $post_id ) {
     	$episode = \Podlove\Model\Episode::find_or_create_by_post_id( $post_id );
     	$podcast = Model\Podcast::get_instance();
     	$post = get_post( $post_id );
@@ -454,15 +450,23 @@ class App_Dot_Net extends \Podlove\Modules\Base {
         	);
         	array_push( $posted_linked_title, $episode_entry );
         	$start_position = $position + 1;
-    	}
-    	
+    	}	
     	$text = str_replace("{linkedEpisodeTitle}", $post_title, $text);
-    	$text = apply_filters( 'podlove_adn_tags', $text, $post_id, $selected_role, $selected_group );
 
     	return array(
     			'text' => $text,
     			'posted_linked_title' => $posted_linked_title
     		);
+    }
+
+    public function replace_tags( $post_id ) {
+    	$selected_role = $this->get_module_option('adn_contributor_filter_role');
+    	$selected_group = $this->get_module_option('adn_contributor_filter_group');
+
+    	$text = $this->get_module_option('adn_poster_announcement_text');
+    	$text = apply_filters( 'podlove_adn_tags', $text, $post_id, $selected_role, $selected_group );
+
+    	return $this->replace_tags_with_metadata( $text, $post_id );
     }
 
     public function ajax_preview_alpha_post() {
@@ -559,10 +563,8 @@ class App_Dot_Net extends \Podlove\Modules\Base {
     		$adn_service = \Podlove\Modules\Social\Model\Service::find_one_by_property( 'title', 'App.net' );
     		$adn_account = \Podlove\Modules\Social\Model\ContributorService::find_one_by_where( '`contributor_id` = \'' . $contributor->id . '\' AND `service_id` = \'' . $adn_service->id .'\'' );
 
-    		$data = array(
-    				'text' => $notification_options['adn_pm_template'],
-    				'destinations' => array( '@' . $adn_account->value )
-    			);
+    		$data = $this->replace_tags_with_metadata( $notification_options['adn_pm_template'], $post_id );
+    		$data['destinations'] = array( '@' . $adn_account->value );
 
     		$url = sprintf(
     			'https://alpha-api.app.net/channels/pm/messages?access_token=%s',
@@ -582,7 +584,7 @@ class App_Dot_Net extends \Podlove\Modules\Base {
     	$this->post_to_adn( $_REQUEST['post_id'] );
     }
     
-	public function post_to_adn_handler( $postid ) {
+	public function post_to_adn_handler( $post_id ) {
 		if ( $this->is_already_published( $post_id ) || $this->get_module_option('adn_automatic_announcement') !== 'on' )
 			return;
 
